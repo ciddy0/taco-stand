@@ -8,7 +8,7 @@ fn repair_shop(respawn_delay: &mut f64) {
         let (mx, my) = mouse_position();
         let rect_x = 0.0;
         let rect_y = 0.0;
-        let rect_w = 100.0;
+        let rect_w = 150.0;
         let rect_h = 100.0;
 
         // Check if click is inside rectangle
@@ -18,9 +18,27 @@ fn repair_shop(respawn_delay: &mut f64) {
         }
     }
 }
+fn add_stools(rate_of_money: &mut f64) {
+    draw_rectangle(0.0, 150.0, 150.0, 100.0, WHITE);
+    draw_text("Add Stools: Revenue increase+", 10.0, 170.0, 10.0, BLACK);
+    if is_mouse_button_pressed(MouseButton::Left) {
+        let (mx, my) = mouse_position();
+        let rect_x = 0.0;
+        let rect_y = 100.0;
+        let rect_w = 150.0;
+        let rect_h = 100.0;
+
+        // Check if click is inside rectangle
+        if mx >= rect_x && mx <= rect_x + rect_w && my >= rect_y && my <= rect_y + rect_h {
+            *rate_of_money = 0.02;
+            println!("Stools added! Revenue increased 2x!")
+        }
+    }
+}
 #[macroquad::main("Taco Stand")]
 async fn main() {
     let mut money = 0.0;
+    let mut rate_of_money = 0.01;
     let mut coin_pos = vec2(100.0, 100.0);
     let coin_radius = 20.0;
     let mut coin_visible = true;
@@ -28,7 +46,7 @@ async fn main() {
     let mut respawn_delay = 1.0;
 
     loop {
-        money = money + 0.01;
+        money = money + rate_of_money;
         clear_background(RED);
 
         if !coin_visible && get_time() - last_spawn_time > respawn_delay {
@@ -53,6 +71,7 @@ async fn main() {
         }
 
         repair_shop(&mut respawn_delay);
+        add_stools(&mut rate_of_money);
         draw_text(&format!("Currency: ${:.0}", money), 20.0, 40.0, 30.0, BLACK);
         next_frame().await
     }
