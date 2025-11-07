@@ -1,7 +1,7 @@
 use macroquad::prelude::{camera::mouse, *};
 use macroquad::rand::gen_range;
 
-fn repair_shop(respawn_delay: &mut f64) {
+fn repair_shop(respawn_delay: &mut f64, money: &mut f64) {
     draw_rectangle(0.0, 0.0, 150.0, 100.0, WHITE);
     draw_text("Repair Shop: Tip rate increase+", 10.0, 10.0, 10.0, BLACK);
     if is_mouse_button_pressed(MouseButton::Left) {
@@ -12,13 +12,19 @@ fn repair_shop(respawn_delay: &mut f64) {
         let rect_h = 100.0;
 
         // Check if click is inside rectangle
-        if mx >= rect_x && mx <= rect_x + rect_w && my >= rect_y && my <= rect_y + rect_h {
+        if mx >= rect_x
+            && mx <= rect_x + rect_w
+            && my >= rect_y
+            && my <= rect_y + rect_h
+            && *money >= 100.0
+        {
             *respawn_delay = 0.5;
+            *money = *money - 100.0;
             println!("Repair Shop clicked! Respawn delay changed to 0.5s")
         }
     }
 }
-fn add_stools(rate_of_money: &mut f64) {
+fn add_stools(rate_of_money: &mut f64, money: &mut f64) {
     draw_rectangle(0.0, 150.0, 150.0, 100.0, WHITE);
     draw_text("Add Stools: Revenue increase+", 10.0, 170.0, 10.0, BLACK);
     if is_mouse_button_pressed(MouseButton::Left) {
@@ -29,8 +35,14 @@ fn add_stools(rate_of_money: &mut f64) {
         let rect_h = 100.0;
 
         // Check if click is inside rectangle
-        if mx >= rect_x && mx <= rect_x + rect_w && my >= rect_y && my <= rect_y + rect_h {
+        if mx >= rect_x
+            && mx <= rect_x + rect_w
+            && my >= rect_y
+            && my <= rect_y + rect_h
+            && *money >= 100.0
+        {
             *rate_of_money = 0.02;
+            *money = *money - 100.0;
             println!("Stools added! Revenue increased 2x!")
         }
     }
@@ -70,8 +82,8 @@ async fn main() {
             }
         }
 
-        repair_shop(&mut respawn_delay);
-        add_stools(&mut rate_of_money);
+        repair_shop(&mut respawn_delay, &mut money);
+        add_stools(&mut rate_of_money, &mut money);
         draw_text(&format!("Currency: ${:.0}", money), 20.0, 40.0, 30.0, BLACK);
         next_frame().await
     }
