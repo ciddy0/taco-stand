@@ -67,10 +67,25 @@ async fn main() {
     let mut last_spawn_time = get_time();
     let mut respawn_delay = 1.0;
 
+    // Main background
     let background: Texture2D = load_texture("assets/background.png").await.unwrap();
     background.set_filter(FilterMode::Nearest);
 
+    // Rounded rectangle background
+    let rect_bg: Texture2D = load_texture("assets/background2.png").await.unwrap();
+    rect_bg.set_filter(FilterMode::Nearest);
+
+    // Rectangle properties
+    let rect_w = 882.0;
+    let rect_h = 542.0;
+    let rect_x = (screen_width() - rect_w) / 2.0;
+    let rect_y = (screen_height() - rect_h) / 2.0;
+
     loop {
+        // Update currency
+        money += rate_of_money;
+
+        // Draw main background (fullscreen)
         draw_texture_ex(
             &background,
             0.0,
@@ -81,32 +96,50 @@ async fn main() {
                 ..Default::default()
             },
         );
-        money = money + rate_of_money;
 
+        // Draw the rounded rectangle with background2
+        draw_texture_ex(
+            &rect_bg,
+            rect_x,
+            rect_y,
+            WHITE,
+            DrawTextureParams {
+                dest_size: Some(vec2(rect_w, rect_h)),
+                ..Default::default()
+            },
+        );
+
+        // Coin spawn logic
         if !coin_visible && get_time() - last_spawn_time > respawn_delay {
             coin_pos = vec2(
                 gen_range(50.0, screen_width() - 50.0),
-                gen_range(100.0, screen_width() - 50.0),
+                gen_range(100.0, screen_height() - 50.0),
             );
             coin_visible = true;
         }
-        if coin_visible {
-            draw_circle(coin_pos.x, coin_pos.y, coin_radius, BLACK);
-            if is_mouse_button_pressed(MouseButton::Left) {
-                let (mx, my) = mouse_position();
-                let dx = mx - coin_pos.x;
-                let dy = my - coin_pos.y;
-                if dx * dx + dy * dy <= coin_radius * coin_radius {
-                    money += 1.0;
-                    coin_visible = false;
-                    last_spawn_time = get_time();
-                }
-            }
-        }
 
-        repair_shop(&mut respawn_delay, &mut money);
-        add_stools(&mut rate_of_money, &mut money);
-        draw_text(&format!("Currency: ${:.0}", money), 20.0, 40.0, 30.0, BLACK);
-        next_frame().await
+        // Draw coin
+        // if coin_visible {
+        //     draw_circle(coin_pos.x, coin_pos.y, coin_radius, BLACK);
+        //     if is_mouse_button_pressed(MouseButton::Left) {
+        //         let (mx, my) = mouse_position();
+        //         let dx = mx - coin_pos.x;
+        //         let dy = my - coin_pos.y;
+        //         if dx * dx + dy * dy <= coin_radius * coin_radius {
+        //             money += 1.0;
+        //             coin_visible = false;
+        //             last_spawn_time = get_time();
+        //         }
+        //     }
+        // }
+
+        // Buttons
+        // repair_shop(&mut respawn_delay, &mut money);
+        // add_stools(&mut rate_of_money, &mut money);
+
+        // Currency text
+        // draw_text(&format!("Currency: ${:.0}", money), 20.0, 40.0, 30.0, BLACK);
+
+        next_frame().await;
     }
 }
