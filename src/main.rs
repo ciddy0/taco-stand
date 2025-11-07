@@ -1,6 +1,16 @@
 use macroquad::prelude::{camera::mouse, *};
 use macroquad::rand::gen_range;
 
+fn window_config() -> Conf {
+    Conf {
+        window_title: "Taco Stand".to_string(),
+        fullscreen: false,
+        window_width: 1024,
+        window_height: 768,
+        window_resizable: false,
+        ..Default::default()
+    }
+}
 fn repair_shop(respawn_delay: &mut f64, money: &mut f64) {
     draw_rectangle(0.0, 0.0, 150.0, 100.0, WHITE);
     draw_text("Repair Shop: Tip rate increase+", 10.0, 10.0, 10.0, BLACK);
@@ -47,7 +57,7 @@ fn add_stools(rate_of_money: &mut f64, money: &mut f64) {
         }
     }
 }
-#[macroquad::main("Taco Stand")]
+#[macroquad::main(window_config)]
 async fn main() {
     let mut money = 0.0;
     let mut rate_of_money = 0.01;
@@ -57,9 +67,21 @@ async fn main() {
     let mut last_spawn_time = get_time();
     let mut respawn_delay = 1.0;
 
+    let background: Texture2D = load_texture("assets/background.png").await.unwrap();
+    background.set_filter(FilterMode::Nearest);
+
     loop {
+        draw_texture_ex(
+            &background,
+            0.0,
+            0.0,
+            WHITE,
+            DrawTextureParams {
+                dest_size: Some(vec2(screen_width(), screen_height())),
+                ..Default::default()
+            },
+        );
         money = money + rate_of_money;
-        clear_background(RED);
 
         if !coin_visible && get_time() - last_spawn_time > respawn_delay {
             coin_pos = vec2(
