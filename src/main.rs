@@ -180,6 +180,22 @@ async fn main() {
             },
         );
 
+        // currency text
+        let text_size = 12.0;
+        let text_x = rect_x + 8.0;
+        let text_y = rect_y + 490.0;
+        draw_text_ex(
+            &format!("Currency: ${:.0}", money),
+            text_x,
+            text_y,
+            TextParams {
+                font: Some(&font),
+                font_size: text_size as u16,
+                color: WHITE,
+                ..Default::default()
+            },
+        );
+
         if button(
             rect_x + 30.0,
             rect_y + 227.0,
@@ -191,6 +207,7 @@ async fn main() {
             &inner_button_bg_hovered,
             &font,
         ) {
+            println!("Rate of money upgraded!");
             rate_of_money = 0.02;
         }
 
