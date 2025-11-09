@@ -11,6 +11,59 @@ fn window_config() -> Conf {
         ..Default::default()
     }
 }
+fn button(
+    x: f32,
+    y: f32,
+    w: f32,
+    h: f32,
+    text: &str,
+    bg: &Texture2D,
+    inner_bg: &Texture2D,
+    bg_hovered: &Texture2D,
+    font: &Font,
+) -> bool {
+    let (mx, my) = mouse_position();
+    let hovered = mx >= x && mx <= x + w && my >= y && my <= y + h;
+
+    let current_bg = if hovered { bg_hovered } else { inner_bg };
+    draw_texture_ex(
+        &bg,
+        x,
+        y,
+        WHITE,
+        DrawTextureParams {
+            dest_size: Some(vec2(w, h)),
+            ..Default::default()
+        },
+    );
+
+    draw_texture_ex(
+        &current_bg,
+        x + 4.0,
+        y + 4.0,
+        WHITE,
+        DrawTextureParams {
+            dest_size: Some(vec2(185.0, 34.0)),
+            ..Default::default()
+        },
+    );
+    let text_size = 12.0;
+    let text_x = x + 4.0 + 8.0;
+    let text_y = y + 4.0 + 15.0;
+    draw_text_ex(
+        text,
+        text_x,
+        text_y,
+        TextParams {
+            font: Some(font),
+            font_size: text_size as u16,
+            color: BLACK,
+            ..Default::default()
+        },
+    );
+
+    hovered && is_mouse_button_pressed(MouseButton::Left)
+}
 fn repair_shop(respawn_delay: &mut f64, money: &mut f64) {
     draw_rectangle(0.0, 0.0, 150.0, 100.0, WHITE);
     draw_text("Repair Shop: Tip rate increase+", 10.0, 10.0, 10.0, BLACK);
@@ -75,6 +128,24 @@ async fn main() {
     let rect_bg: Texture2D = load_texture("assets/background2.png").await.unwrap();
     rect_bg.set_filter(FilterMode::Nearest);
 
+    // Rounded button background
+    let button_bg: Texture2D = load_texture("assets/button_background.png").await.unwrap();
+    button_bg.set_filter(FilterMode::Nearest);
+
+    // Rounded inner button background
+    let inner_button_bg: Texture2D = load_texture("assets/inner_button_background.png")
+        .await
+        .unwrap();
+    inner_button_bg.set_filter(FilterMode::Nearest);
+
+    let inner_button_bg_hovered: Texture2D =
+        load_texture("assets/inner_button_background_hovered.png")
+            .await
+            .unwrap();
+    inner_button_bg_hovered.set_filter(FilterMode::Nearest);
+
+    // load font
+    let font: Font = load_ttf_font("fonts/MadimiOne-Regular.ttf").await.unwrap();
     // Rectangle properties
     let rect_w = 882.0;
     let rect_h = 542.0;
@@ -108,6 +179,20 @@ async fn main() {
                 ..Default::default()
             },
         );
+
+        if button(
+            rect_x + 30.0,
+            rect_y + 227.0,
+            300.0,
+            41.0,
+            "Repair Shop",
+            &button_bg,
+            &inner_button_bg,
+            &inner_button_bg_hovered,
+            &font,
+        ) {
+            rate_of_money = 0.02;
+        }
 
         // Coin spawn logic
         if !coin_visible && get_time() - last_spawn_time > respawn_delay {
