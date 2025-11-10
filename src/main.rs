@@ -21,7 +21,7 @@ fn button(
     inner_bg: &Texture2D,
     bg_hovered: &Texture2D,
     font: &Font,
-) -> bool {
+) -> (bool, bool) {
     let (mx, my) = mouse_position();
     let hovered = mx >= x && mx <= x + w && my >= y && my <= y + h;
 
@@ -62,7 +62,8 @@ fn button(
         },
     );
 
-    hovered && is_mouse_button_pressed(MouseButton::Left)
+    let clicked = hovered && is_mouse_button_pressed(MouseButton::Left);
+    (clicked, hovered)
 }
 fn repair_shop(respawn_delay: &mut f64, money: &mut f64) {
     draw_rectangle(0.0, 0.0, 150.0, 100.0, WHITE);
@@ -146,6 +147,14 @@ async fn main() {
 
     // load font
     let font: Font = load_ttf_font("fonts/MadimiOne-Regular.ttf").await.unwrap();
+
+    // load cursor texture
+    let cursor_texture: Texture2D = load_texture("assets/cursor.png").await.unwrap();
+    cursor_texture.set_filter(FilterMode::Nearest);
+    let pointer_texture: Texture2D = load_texture("assets/pointer.png").await.unwrap();
+    pointer_texture.set_filter(FilterMode::Nearest);
+    show_mouse(false);
+
     // Rectangle properties
     let rect_w = 882.0;
     let rect_h = 542.0;
@@ -155,6 +164,9 @@ async fn main() {
     loop {
         // Update currency
         money += rate_of_money;
+
+        // Track if ANY button is hovered
+        let mut any_button_hovered = false;
 
         // Draw main background (fullscreen)
         draw_texture_ex(
@@ -196,7 +208,7 @@ async fn main() {
             },
         );
 
-        if button(
+        let (clicked, hovered) = button(
             rect_x + 30.0,
             rect_y + 227.0,
             300.0,
@@ -206,9 +218,14 @@ async fn main() {
             &inner_button_bg,
             &inner_button_bg_hovered,
             &font,
-        ) {
+        );
+        if clicked {
             println!("Rate of money upgraded!");
             rate_of_money = 0.02;
+        }
+
+        if hovered {
+            any_button_hovered = true;
         }
 
         // Coin spawn logic
@@ -241,7 +258,24 @@ async fn main() {
 
         // Currency text
         // draw_text(&format!("Currency: ${:.0}", money), 20.0, 40.0, 30.0, BLACK);
-
+        // draw custom mouse
+        // Determine cursor based on any button hover
+        let cursor = if any_button_hovered {
+            &pointer_texture
+        } else {
+            &cursor_texture
+        };
+        let (mx, my) = mouse_position();
+        draw_texture_ex(
+            cursor,
+            mx,
+            my,
+            WHITE,
+            DrawTextureParams {
+                dest_size: Some(vec2(32.0, 32.0)),
+                ..Default::default()
+            },
+        );
         next_frame().await;
     }
 }
