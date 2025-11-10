@@ -129,6 +129,10 @@ async fn main() {
     let rect_bg: Texture2D = load_texture("assets/background2.png").await.unwrap();
     rect_bg.set_filter(FilterMode::Nearest);
 
+    // layer 1
+    let layer1_bg: Texture2D = load_texture("assets/layer1.png").await.unwrap();
+    layer1_bg.set_filter(FilterMode::Nearest);
+
     // Rounded button background
     let button_bg: Texture2D = load_texture("assets/button_background.png").await.unwrap();
     button_bg.set_filter(FilterMode::Nearest);
@@ -188,6 +192,18 @@ async fn main() {
             WHITE,
             DrawTextureParams {
                 dest_size: Some(vec2(rect_w, rect_h)),
+                ..Default::default()
+            },
+        );
+
+        // draw layer 1
+        draw_texture_ex(
+            &layer1_bg,
+            rect_x + 417.0,
+            rect_y + 37.0,
+            WHITE,
+            DrawTextureParams {
+                dest_size: Some(vec2(420.0, 467.0)),
                 ..Default::default()
             },
         );
