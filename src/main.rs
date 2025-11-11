@@ -132,6 +132,9 @@ async fn main() {
     // layer 1
     let layer1_bg: Texture2D = load_texture("assets/layer1.png").await.unwrap();
     layer1_bg.set_filter(FilterMode::Nearest);
+    // layer 2
+    let layer2_bg: Texture2D = load_texture("assets/layer2.png").await.unwrap();
+    layer2_bg.set_filter(FilterMode::Nearest);
 
     // Rounded button background
     let button_bg: Texture2D = load_texture("assets/button_background.png").await.unwrap();
@@ -166,6 +169,7 @@ async fn main() {
     let rect_y = (screen_height() - rect_h) / 2.0;
 
     loop {
+        println!("FPS: {}", get_fps());
         // Update currency
         money += rate_of_money;
 
@@ -195,7 +199,17 @@ async fn main() {
                 ..Default::default()
             },
         );
-
+        // draw layer 2
+        draw_texture_ex(
+            &layer2_bg,
+            rect_x + 417.0,
+            rect_y + 37.0,
+            WHITE,
+            DrawTextureParams {
+                dest_size: Some(vec2(420.0, 467.0)),
+                ..Default::default()
+            },
+        );
         // draw layer 1
         draw_texture_ex(
             &layer1_bg,
