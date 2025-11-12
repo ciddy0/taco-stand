@@ -16,18 +16,26 @@ fn button(
     y: f32,
     w: f32,
     h: f32,
-    text: &str,
-    bg: &Texture2D,
-    inner_bg: &Texture2D,
-    bg_hovered: &Texture2D,
-    font: &Font,
+    normal_texture: &Texture2D,
+    hovered_texture: &Texture2D,
+    purchased_texture: &Texture2D,
+    is_purchased: bool,
 ) -> (bool, bool) {
     let (mx, my) = mouse_position();
     let hovered = mx >= x && mx <= x + w && my >= y && my <= y + h;
 
-    let current_bg = if hovered { bg_hovered } else { inner_bg };
+    // Determine which texture to use based on state
+    let current_texture = if is_purchased {
+        purchased_texture
+    } else if hovered {
+        hovered_texture
+    } else {
+        normal_texture
+    };
+
+    // Draw the button texture
     draw_texture_ex(
-        &bg,
+        current_texture,
         x,
         y,
         WHITE,
@@ -37,79 +45,8 @@ fn button(
         },
     );
 
-    draw_texture_ex(
-        &current_bg,
-        x + 4.0,
-        y + 4.0,
-        WHITE,
-        DrawTextureParams {
-            dest_size: Some(vec2(185.0, 34.0)),
-            ..Default::default()
-        },
-    );
-    let text_size = 12.0;
-    let text_x = x + 4.0 + 8.0;
-    let text_y = y + 4.0 + 15.0;
-    draw_text_ex(
-        text,
-        text_x,
-        text_y,
-        TextParams {
-            font: Some(font),
-            font_size: text_size as u16,
-            color: BLACK,
-            ..Default::default()
-        },
-    );
-
-    let clicked = hovered && is_mouse_button_pressed(MouseButton::Left);
+    let clicked = hovered && is_mouse_button_pressed(MouseButton::Left) && !is_purchased;
     (clicked, hovered)
-}
-fn repair_shop(respawn_delay: &mut f64, money: &mut f64) {
-    draw_rectangle(0.0, 0.0, 150.0, 100.0, WHITE);
-    draw_text("Repair Shop: Tip rate increase+", 10.0, 10.0, 10.0, BLACK);
-    if is_mouse_button_pressed(MouseButton::Left) {
-        let (mx, my) = mouse_position();
-        let rect_x = 0.0;
-        let rect_y = 0.0;
-        let rect_w = 150.0;
-        let rect_h = 100.0;
-
-        // Check if click is inside rectangle
-        if mx >= rect_x
-            && mx <= rect_x + rect_w
-            && my >= rect_y
-            && my <= rect_y + rect_h
-            && *money >= 100.0
-        {
-            *respawn_delay = 0.5;
-            *money = *money - 100.0;
-            println!("Repair Shop clicked! Respawn delay changed to 0.5s")
-        }
-    }
-}
-fn add_stools(rate_of_money: &mut f64, money: &mut f64) {
-    draw_rectangle(0.0, 150.0, 150.0, 100.0, WHITE);
-    draw_text("Add Stools: Revenue increase+", 10.0, 170.0, 10.0, BLACK);
-    if is_mouse_button_pressed(MouseButton::Left) {
-        let (mx, my) = mouse_position();
-        let rect_x = 0.0;
-        let rect_y = 100.0;
-        let rect_w = 150.0;
-        let rect_h = 100.0;
-
-        // Check if click is inside rectangle
-        if mx >= rect_x
-            && mx <= rect_x + rect_w
-            && my >= rect_y
-            && my <= rect_y + rect_h
-            && *money >= 100.0
-        {
-            *rate_of_money = 0.02;
-            *money = *money - 100.0;
-            println!("Stools added! Revenue increased 2x!")
-        }
-    }
 }
 #[macroquad::main(window_config)]
 async fn main() {
@@ -136,22 +73,77 @@ async fn main() {
     let layer2_bg: Texture2D = load_texture("assets/layer2.png").await.unwrap();
     layer2_bg.set_filter(FilterMode::Nearest);
 
-    // Rounded button background
-    let button_bg: Texture2D = load_texture("assets/button_background.png").await.unwrap();
-    button_bg.set_filter(FilterMode::Nearest);
-
-    // Rounded inner button background
-    let inner_button_bg: Texture2D = load_texture("assets/inner_button_background.png")
-        .await
-        .unwrap();
-    inner_button_bg.set_filter(FilterMode::Nearest);
-
-    let inner_button_bg_hovered: Texture2D =
-        load_texture("assets/inner_button_background_hovered.png")
+    // buttons
+    let repair_taco_stand_button_normal: Texture2D =
+        load_texture("assets/buttons/Repair_Taco_Stand_button.png")
             .await
             .unwrap();
-    inner_button_bg_hovered.set_filter(FilterMode::Nearest);
+    repair_taco_stand_button_normal.set_filter(FilterMode::Nearest);
+    let repair_taco_stand_button_hovered: Texture2D =
+        load_texture("assets/buttons/Repair_Taco_Stand_button_hovered.png")
+            .await
+            .unwrap();
+    repair_taco_stand_button_hovered.set_filter(FilterMode::Nearest);
+    let repair_taco_stand_button_purchased: Texture2D =
+        load_texture("assets/buttons/Repair_Taco_Stand_button_purchased.png")
+            .await
+            .unwrap();
+    repair_taco_stand_button_purchased.set_filter(FilterMode::Nearest);
+    // Add this in the texture loading section (after repair_taco_stand buttons):
 
+    // Button 2
+    let add_stools_button_normal: Texture2D = load_texture("assets/buttons/add_stools_button.png")
+        .await
+        .unwrap();
+    add_stools_button_normal.set_filter(FilterMode::Nearest);
+
+    let add_stools_button_hovered: Texture2D =
+        load_texture("assets/buttons/add_stools_button_hovered.png")
+            .await
+            .unwrap();
+    add_stools_button_hovered.set_filter(FilterMode::Nearest);
+
+    let add_stools_button_purchased: Texture2D =
+        load_texture("assets/buttons/add_stools_button_purchased.png")
+            .await
+            .unwrap();
+    add_stools_button_purchased.set_filter(FilterMode::Nearest);
+
+    // Button 3
+    let add_lights_button_normal: Texture2D = load_texture("assets/buttons/add_lights_button.png")
+        .await
+        .unwrap();
+    add_lights_button_normal.set_filter(FilterMode::Nearest);
+
+    let add_lights_button_hovered: Texture2D =
+        load_texture("assets/buttons/add_lights_button_hovered.png")
+            .await
+            .unwrap();
+    add_lights_button_hovered.set_filter(FilterMode::Nearest);
+
+    let add_lights_button_purchased: Texture2D =
+        load_texture("assets/buttons/add_lights_button_purchased.png")
+            .await
+            .unwrap();
+    add_lights_button_purchased.set_filter(FilterMode::Nearest);
+
+    // Button 4
+    let alpastor_button_normal: Texture2D = load_texture("assets/buttons/alpastor_button.png")
+        .await
+        .unwrap();
+    alpastor_button_normal.set_filter(FilterMode::Nearest);
+
+    let alpastor_button_hovered: Texture2D =
+        load_texture("assets/buttons/alpastor_button_hovered.png")
+            .await
+            .unwrap();
+    alpastor_button_hovered.set_filter(FilterMode::Nearest);
+
+    let alpastor_button_purchased: Texture2D =
+        load_texture("assets/buttons/alpastor_button_purchased.png")
+            .await
+            .unwrap();
+    alpastor_button_purchased.set_filter(FilterMode::Nearest);
     // load font
     let font: Font = load_ttf_font("fonts/MadimiOne-Regular.ttf").await.unwrap();
 
@@ -167,6 +159,11 @@ async fn main() {
     let rect_h = 542.0;
     let rect_x = (screen_width() - rect_w) / 2.0;
     let rect_y = (screen_height() - rect_h) / 2.0;
+
+    let mut repair_shop_purchased = false;
+    let mut add_stools_purchased = false;
+    let mut add_lights_purchased = false;
+    let mut alpastor_purchased = false;
 
     loop {
         println!("FPS: {}", get_fps());
@@ -243,19 +240,78 @@ async fn main() {
             rect_y + 227.0,
             300.0,
             41.0,
-            "Repair Shop",
-            &button_bg,
-            &inner_button_bg,
-            &inner_button_bg_hovered,
-            &font,
+            &repair_taco_stand_button_normal,
+            &repair_taco_stand_button_hovered,
+            &repair_taco_stand_button_purchased,
+            repair_shop_purchased,
         );
-        if clicked {
-            println!("Rate of money upgraded!");
-            rate_of_money = 0.02;
-        }
-
         if hovered {
             any_button_hovered = true;
+        }
+        if clicked {
+            println!("Repair shop purchased!");
+            rate_of_money = 0.02;
+            money -= 100.0;
+            repair_shop_purchased = true;
+        }
+        // Button 2
+        let (clicked2, hovered2) = button(
+            rect_x + 30.0,
+            rect_y + 278.0, // Adjust Y position
+            300.0,
+            41.0,
+            &add_stools_button_normal,
+            &add_stools_button_hovered,
+            &add_stools_button_purchased,
+            add_stools_purchased,
+        );
+        if hovered2 {
+            any_button_hovered = true;
+        }
+        if clicked2 && money >= 200.0 {
+            println!("Button 2 purchased!");
+            money -= 200.0;
+            add_stools_purchased = true;
+        }
+
+        // Button 3
+        let (clicked3, hovered3) = button(
+            rect_x + 30.0,
+            rect_y + 329.0,
+            300.0,
+            41.0,
+            &add_lights_button_normal,
+            &add_lights_button_hovered,
+            &add_lights_button_purchased,
+            add_lights_purchased,
+        );
+        if hovered3 {
+            any_button_hovered = true;
+        }
+        if clicked3 && money >= 300.0 {
+            println!("Button 3 purchased!");
+            money -= 300.0;
+            add_lights_purchased = true;
+        }
+
+        // Button 4
+        let (clicked4, hovered4) = button(
+            rect_x + 30.0,
+            rect_y + 380.0,
+            300.0,
+            41.0,
+            &alpastor_button_normal,
+            &alpastor_button_hovered,
+            &alpastor_button_purchased,
+            alpastor_purchased,
+        );
+        if hovered4 {
+            any_button_hovered = true;
+        }
+        if clicked4 && money >= 400.0 {
+            println!("Button 4 purchased!");
+            money -= 400.0;
+            alpastor_purchased = true;
         }
 
         // Coin spawn logic
