@@ -52,7 +52,7 @@ fn button(
 async fn main() {
     let mut money = 0.0;
     let mut rate_of_money = 0.01;
-    let mut coin_pos = vec2(100.0, 100.0);
+    let mut coin_pos = vec2(0.0, 0.0); // Will be set properly after layer1 boundaries are calculated
     let coin_radius = 32.0;
     let mut coin_visible = true;
     let mut last_spawn_time = get_time();
@@ -89,7 +89,6 @@ async fn main() {
             .await
             .unwrap();
     repair_taco_stand_button_purchased.set_filter(FilterMode::Nearest);
-    // Add this in the texture loading section (after repair_taco_stand buttons):
 
     // Button 2
     let add_stools_button_normal: Texture2D = load_texture("assets/buttons/add_stools_button.png")
@@ -164,6 +163,19 @@ async fn main() {
     let rect_x = (screen_width() - rect_w) / 2.0;
     let rect_y = (screen_height() - rect_h) / 2.0;
 
+    // Layer 1 boundaries (where coins should spawn)
+    let layer1_x = rect_x + 417.0;
+    let layer1_y = rect_y + 37.0;
+    let layer1_w = 420.0;
+    let layer1_h = 467.0;
+
+    // Initialize first coin position within layer 1
+    let padding = coin_radius;
+    coin_pos = vec2(
+        gen_range(layer1_x + padding, layer1_x + layer1_w - padding),
+        gen_range(layer1_y + padding, layer1_y + layer1_h - padding),
+    );
+
     let mut repair_shop_purchased = false;
     let mut add_stools_purchased = false;
     let mut add_lights_purchased = false;
@@ -203,22 +215,22 @@ async fn main() {
         // draw layer 2
         draw_texture_ex(
             &layer2_bg,
-            rect_x + 417.0,
-            rect_y + 37.0,
+            layer1_x,
+            layer1_y,
             WHITE,
             DrawTextureParams {
-                dest_size: Some(vec2(420.0, 467.0)),
+                dest_size: Some(vec2(layer1_w, layer1_h)),
                 ..Default::default()
             },
         );
         // draw layer 1
         draw_texture_ex(
             &layer1_bg,
-            rect_x + 417.0,
-            rect_y + 37.0,
+            layer1_x,
+            layer1_y,
             WHITE,
             DrawTextureParams {
-                dest_size: Some(vec2(420.0, 467.0)),
+                dest_size: Some(vec2(layer1_w, layer1_h)),
                 ..Default::default()
             },
         );
@@ -320,9 +332,10 @@ async fn main() {
 
         // Coin spawn logic
         if !coin_visible && get_time() - last_spawn_time > respawn_delay {
+            let padding = coin_radius;
             coin_pos = vec2(
-                gen_range(50.0, screen_width() - 50.0),
-                gen_range(100.0, screen_height() - 50.0),
+                gen_range(layer1_x + padding, layer1_x + layer1_w - padding),
+                gen_range(layer1_y + padding, layer1_y + layer1_h - padding),
             );
             coin_visible = true;
         }
