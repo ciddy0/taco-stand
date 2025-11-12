@@ -53,7 +53,7 @@ async fn main() {
     let mut money = 0.0;
     let mut rate_of_money = 0.01;
     let mut coin_pos = vec2(100.0, 100.0);
-    let coin_radius = 20.0;
+    let coin_radius = 32.0;
     let mut coin_visible = true;
     let mut last_spawn_time = get_time();
     let mut respawn_delay = 1.0;
@@ -153,6 +153,10 @@ async fn main() {
     let pointer_texture: Texture2D = load_texture("assets/pointer.png").await.unwrap();
     pointer_texture.set_filter(FilterMode::Nearest);
     show_mouse(false);
+
+    // load coin texture
+    let coin_texture: Texture2D = load_texture("assets/coin.png").await.unwrap();
+    coin_texture.set_filter(FilterMode::Nearest);
 
     // Rectangle properties
     let rect_w = 882.0;
@@ -324,19 +328,29 @@ async fn main() {
         }
 
         // Draw coin
-        // if coin_visible {
-        //     draw_circle(coin_pos.x, coin_pos.y, coin_radius, BLACK);
-        //     if is_mouse_button_pressed(MouseButton::Left) {
-        //         let (mx, my) = mouse_position();
-        //         let dx = mx - coin_pos.x;
-        //         let dy = my - coin_pos.y;
-        //         if dx * dx + dy * dy <= coin_radius * coin_radius {
-        //             money += 1.0;
-        //             coin_visible = false;
-        //             last_spawn_time = get_time();
-        //         }
-        //     }
-        // }
+        if coin_visible {
+            draw_texture_ex(
+                &coin_texture,
+                coin_pos.x - coin_radius / 2.0, // Center the texture on coin_pos
+                coin_pos.y - coin_radius / 2.0,
+                WHITE,
+                DrawTextureParams {
+                    dest_size: Some(vec2(coin_radius, coin_radius)),
+                    ..Default::default()
+                },
+            );
+
+            if is_mouse_button_pressed(MouseButton::Left) {
+                let (mx, my) = mouse_position();
+                let dx = mx - coin_pos.x;
+                let dy = my - coin_pos.y;
+                if dx * dx + dy * dy <= coin_radius * coin_radius {
+                    money += 1.0;
+                    coin_visible = false;
+                    last_spawn_time = get_time();
+                }
+            }
+        }
 
         // Buttons
         // repair_shop(&mut respawn_delay, &mut money);
