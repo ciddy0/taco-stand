@@ -352,14 +352,6 @@ async fn main() {
             }
         }
 
-        // Buttons
-        // repair_shop(&mut respawn_delay, &mut money);
-        // add_stools(&mut rate_of_money, &mut money);
-
-        // Currency text
-        // draw_text(&format!("Currency: ${:.0}", money), 20.0, 40.0, 30.0, BLACK);
-        // draw custom mouse
-        // Determine cursor based on any button hover
         let cursor = if any_button_hovered {
             &pointer_texture
         } else {
